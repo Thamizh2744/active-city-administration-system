@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import AuthContext from '../context/AuthContext';
+
 import { PlusCircle, Search, AlertCircle, Clock, CheckCircle } from 'lucide-react';
 
 const API_URL = 'http://localhost:5000/api';
 
 const CitizenDashboard = () => {
-  const { user } = useContext(AuthContext);
+
   const [complaints, setComplaints] = useState([]);
   const [categories, setCategories] = useState([]);
   const [locations, setLocations] = useState([]);

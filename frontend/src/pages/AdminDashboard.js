@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
-import { Settings, Users, ClipboardList, Filter, AlertCircle, CheckCircle } from 'lucide-react';
+import { Settings, ClipboardList, Filter, AlertCircle, CheckCircle } from 'lucide-react';
 
 const API_URL = 'http://localhost:5000/api';
 
@@ -15,6 +15,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     fetchComplaints();
     fetchAuthorities();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchAuthorities = async () => {
