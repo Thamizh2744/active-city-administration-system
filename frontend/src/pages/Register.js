@@ -29,9 +29,9 @@ const Register = () => {
     }
     delete submitData.countryCode;
 
-    const success = await register(submitData);
-    if (!success) {
-      setError('Registration failed. Email might be already in use.');
+    const response = await register(submitData);
+    if (!response.success) {
+      setError(response.message || 'Registration failed. Please try again.');
     }
   };
 

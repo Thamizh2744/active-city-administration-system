@@ -53,10 +53,10 @@ export const AuthProvider = ({ children }) => {
       setUser(res.data);
       if (res.data.role === 'citizen') navigate('/citizen');
       else navigate('/admin');
-      return true;
+      return { success: true };
     } catch (error) {
-      console.error("Register failed", error.response?.data);
-      return false;
+      console.error("Register failed", error);
+      return { success: false, message: error.response?.data?.message || 'Network error or server is unavailable' };
     }
   };
 
