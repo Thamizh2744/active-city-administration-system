@@ -6,13 +6,20 @@ const connectDB = require("./config/db");
 
 dotenv.config();
 
+// Connect Database
 connectDB();
 
 const app = express();
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Test Route (important for checking deployment)
+app.get("/", (req, res) => {
+  res.send("Smart City Backend API is running");
+});
 
 // Routes
 app.use("/api/auth", require("./routes/authRoutes"));
@@ -26,15 +33,12 @@ app.use("/api/notifications", require("./routes/notificationRoutes"));
 // Default error handler
 app.use((err, req, res, next) => {
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-  res.status(statusCode);
-  res.json({
+
+  res.status(statusCode).json({
     message: err.message,
     stack: process.env.NODE_ENV === "production" ? null : err.stack,
   });
 });
 
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Export app for Vercel serverless
+module.exports = app;
