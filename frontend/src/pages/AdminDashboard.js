@@ -3,7 +3,7 @@ import axios from 'axios';
 import AuthContext from '../context/AuthContext';
 import { Settings, ClipboardList, Filter, AlertCircle, CheckCircle } from 'lucide-react';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const AdminDashboard = () => {
   const { user } = useContext(AuthContext);
