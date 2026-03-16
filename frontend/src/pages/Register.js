@@ -53,13 +53,13 @@ const Register = () => {
               <label className="block text-gray-700 text-sm font-bold mb-2">Full Name</label>
               <input type="text" name="name" required onChange={handleChange}
                 className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="John Doe" />
+                placeholder="Enter Your Name" />
             </div>
             <div>
               <label className="block text-gray-700 text-sm font-bold mb-2">Email Address</label>
               <input type="email" name="email" required onChange={handleChange}
                 className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="john@example.com" />
+                placeholder="Enter Your E-mail" />
             </div>
           </div>
           
