@@ -30,16 +30,25 @@ export const AuthProvider = ({ children }) => {
     checkUser();
   }, []);
 
+  const getDashboardPath = (role) => {
+    switch (role) {
+      case 'citizen':       return '/citizen';
+      case 'administrator': return '/admin';
+      case 'municipal':     return '/municipal';
+      case 'ngo':           return '/ngo';
+      default:              return '/login';
+    }
+  };
+
   const login = async (email, password) => {
     try {
       const res = await axios.post(`${API_URL}/auth/login`, { email, password });
       localStorage.setItem('token', res.data.token);
-      setUser(res.data.user || res.data); // adjust based on new backend response
+      setUser(res.data.user || res.data);
 
       // Navigate based on role
       const role = res.data.role || res.data.user?.role;
-      if (role === 'citizen') navigate('/citizen');
-      else navigate('/admin');
+      navigate(getDashboardPath(role));
 
       return true;
     } catch (error) {
@@ -53,8 +62,7 @@ export const AuthProvider = ({ children }) => {
       const res = await axios.post(`${API_URL}/auth/register`, userData);
       localStorage.setItem('token', res.data.token);
       setUser(res.data);
-      if (res.data.role === 'citizen') navigate('/citizen');
-      else navigate('/admin');
+      navigate(getDashboardPath(res.data.role));
       return { success: true };
     } catch (error) {
       console.error("Register failed", error);

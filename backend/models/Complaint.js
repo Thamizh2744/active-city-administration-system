@@ -36,6 +36,12 @@ const ComplaintSchema = new mongoose.Schema({
     enum: ["low", "medium", "high", "critical"],
     default: "medium",
   },
+  resolutionProof: {
+    note: { type: String },
+    image: { type: String },
+    resolvedBy: { type: String },
+    resolvedAt: { type: Date },
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model("Complaint", ComplaintSchema);

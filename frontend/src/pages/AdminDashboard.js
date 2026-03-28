@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
-import { Settings, ClipboardList, Filter, AlertCircle, CheckCircle } from 'lucide-react';
+import { Settings, ClipboardList, Filter, AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const AdminDashboard = () => {
+  // eslint-disable-next-line no-unused-vars
   const { user } = useContext(AuthContext);
   const [complaints, setComplaints] = useState([]);
   const [filterStr, setFilterStr] = useState('all');
   const [authorities, setAuthorities] = useState([]);
   const [assignModal, setAssignModal] = useState({ show: false, complaintId: null, selectedUser: '' });
+  const [detailsModal, setDetailsModal] = useState({ show: false, complaint: null });
 
   useEffect(() => {
     fetchComplaints();
@@ -33,39 +35,16 @@ const AdminDashboard = () => {
   const fetchComplaints = async () => {
     try {
       const token = localStorage.getItem('token');
-      // If user is administrator, fetch all. If municipal/ngo, fetch assigned.
-      let endpoint = `${API_URL}/complaints`;
-      if (user?.role === 'municipal' || user?.role === 'ngo') {
-        endpoint = `${API_URL}/assignments/my`;
-      }
-      
-      const res = await axios.get(endpoint, {
+      const res = await axios.get(`${API_URL}/complaints`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
-      // If assigned route, it returns assignment objects containing the complaint. 
-      // We need to map them to matching interface.
-      if (user?.role === 'municipal' || user?.role === 'ngo') {
-        setComplaints(res.data.map(a => ({ ...a.complaint, assignmentId: a._id, assignmentStatus: a.status })));
-      } else {
-        setComplaints(res.data);
-      }
+      setComplaints(res.data);
     } catch (error) {
       console.error("Failed to fetch complaints", error);
     }
   };
 
-  const handleStatusChange = async (id, newStatus) => {
-    try {
-      const token = localStorage.getItem('token');
-      await axios.put(`${API_URL}/complaints/${id}/status`, { status: newStatus }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      fetchComplaints(); // Refresh
-    } catch (error) {
-      console.error("Failed to update status", error);
-    }
-  };
+
 
   const handleAssignSubmit = async (e) => {
     e.preventDefault();
@@ -102,29 +81,35 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-8">
-      {/* Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {/* Overview Stats — all clickable to filter table */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {[
-          { icon: <ClipboardList className="text-blue-500" size={24} />, label: 'Total Complaints', value: complaints.length, bg: 'bg-blue-50' },
-          { icon: <AlertCircle className="text-yellow-500" size={24} />, label: 'Pending', value: complaints.filter(c => c.status === 'pending').length, bg: 'bg-yellow-50' },
-          { icon: <Settings className="text-purple-500" size={24} />, label: 'Assigned', value: complaints.filter(c => c.status === 'assigned').length, bg: 'bg-purple-50' },
-          { icon: <CheckCircle className="text-green-500" size={24} />, label: 'Resolved', value: complaints.filter(c => c.status === 'resolved').length, bg: 'bg-green-50' },
+          { icon: <ClipboardList className="text-blue-500" size={22} />,    label: 'Total',       value: complaints.length,                                          bg: 'bg-blue-50',   filter: 'all' },
+          { icon: <AlertCircle className="text-yellow-500" size={22} />,    label: 'Pending',     value: complaints.filter(c => c.status === 'pending').length,      bg: 'bg-yellow-50', filter: 'pending' },
+          { icon: <Settings className="text-purple-500" size={22} />,       label: 'Assigned',    value: complaints.filter(c => c.status === 'assigned').length,     bg: 'bg-purple-50', filter: 'assigned' },
+          { icon: <Clock className="text-blue-400" size={22} />,            label: 'In-Progress', value: complaints.filter(c => c.status === 'in-progress').length,  bg: 'bg-sky-50',    filter: 'in-progress' },
+          { icon: <CheckCircle className="text-green-500" size={22} />,     label: 'Resolved',    value: complaints.filter(c => c.status === 'resolved').length,     bg: 'bg-green-50',  filter: 'resolved' },
+          { icon: <XCircle className="text-red-500" size={22} />,           label: 'Rejected',    value: complaints.filter(c => c.status === 'rejected').length,     bg: 'bg-red-50',    filter: 'rejected' },
         ].map((stat, i) => (
-          <div key={i} className={`p-6 rounded-xl border border-gray-100 shadow-sm flex items-center space-x-4 bg-white`}>
-            <div className={`p-4 rounded-full ${stat.bg}`}>{stat.icon}</div>
+          <button
+            key={i}
+            onClick={() => setFilterStr(stat.filter)}
+            className={`p-4 rounded-xl border shadow-sm flex flex-col items-start space-y-2 bg-white w-full text-left transition-all hover:shadow-md hover:-translate-y-0.5 ${
+              filterStr === stat.filter ? 'ring-2 ring-indigo-400 border-indigo-300' : 'border-gray-100'
+            }`}
+          >
+            <div className={`p-2 rounded-full ${stat.bg}`}>{stat.icon}</div>
             <div>
-              <p className="text-gray-500 text-sm font-medium">{stat.label}</p>
-              <h3 className="text-2xl font-bold text-gray-800">{stat.value}</h3>
+              <p className="text-gray-500 text-xs font-medium">{stat.label}</p>
+              <h3 className="text-xl font-bold text-gray-800">{stat.value}</h3>
             </div>
-          </div>
+          </button>
         ))}
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="p-6 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4 bg-gray-50">
-          <h2 className="text-2xl font-bold text-gray-800">
-            {user?.role === 'administrator' ? 'Operational Dashboard' : 'My Assignments'}
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-800">Operational Dashboard</h2>
           <div className="flex items-center space-x-2 bg-white px-3 py-2 rounded-lg border">
             <Filter size={18} className="text-gray-400" />
             <select 
@@ -182,31 +167,27 @@ const AdminDashboard = () => {
                       </span>
                     </td>
                     <td className="p-4">
-                      <select 
-                        value={complaint.status} 
-                        onChange={(e) => handleStatusChange(complaint._id, e.target.value)}
-                        className={`text-xs font-bold px-2 py-1 rounded-full border cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 ${getStatusColor(complaint.status)}`}
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="assigned">Assigned</option>
-                        <option value="in-progress">In-Progress</option>
-                        <option value="resolved">Resolved</option>
-                        <option value="rejected">Rejected</option>
-                      </select>
+                      <span className={`px-2 py-1 text-xs font-bold rounded-full border ${getStatusColor(complaint.status)}`}>
+                        {complaint.status?.toUpperCase()}
+                      </span>
                     </td>
                     <td className="p-4 text-right">
-                      {user?.role === 'administrator' && complaint.status === 'pending' ? (
-                        <button 
-                          onClick={() => setAssignModal({ show: true, complaintId: complaint._id, selectedUser: authorities[0]?._id })}
-                          className="text-indigo-600 hover:text-indigo-900 text-sm font-semibold hover:underline bg-indigo-50 px-3 py-1 rounded"
+                      <div className="flex items-center justify-end gap-2">
+                        {complaint.status === 'pending' && (
+                          <button
+                            onClick={() => setAssignModal({ show: true, complaintId: complaint._id, selectedUser: authorities[0]?._id })}
+                            className="text-indigo-600 hover:text-indigo-900 text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded transition-colors"
+                          >
+                            Assign
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setDetailsModal({ show: true, complaint })}
+                          className="text-gray-500 hover:text-gray-700 text-xs font-semibold bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded transition-colors"
                         >
-                          Assign
-                        </button>
-                      ) : (
-                        <button className="text-gray-500 hover:text-gray-700 text-sm font-semibold hover:underline bg-gray-50 px-3 py-1 rounded">
                           Details
                         </button>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -243,6 +224,61 @@ const AdminDashboard = () => {
                   className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-md">Confirm Assignment</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      
+      {/* Details Modal */}
+      {detailsModal.show && detailsModal.complaint && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fade-in text-left">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white">
+              <h3 className="text-2xl font-bold text-gray-800">Complaint Details</h3>
+              <button onClick={() => setDetailsModal({ show: false, complaint: null })} className="text-gray-400 hover:text-gray-600 text-3xl font-light">&times;</button>
+            </div>
+            <div className="p-6 space-y-6">
+              <div>
+                <h4 className="text-lg font-bold text-gray-800 mb-1">{detailsModal.complaint.title}</h4>
+                <p className="text-sm font-semibold text-gray-500">
+                  <span className={`px-2 py-1 text-xs font-bold rounded-full border ${getStatusColor(detailsModal.complaint.status)} mr-2`}>
+                    {detailsModal.complaint.status.toUpperCase()}
+                  </span>
+                  ID: {detailsModal.complaint._id}
+                </p>
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-lg border text-sm text-gray-700">
+                <p className="mb-2"><strong>Citizen:</strong> {detailsModal.complaint.citizen?.name} ({detailsModal.complaint.citizen?.email})</p>
+                <p className="mb-2"><strong>Location:</strong> {detailsModal.complaint.locationDetails?.area}, {detailsModal.complaint.locationDetails?.ward}</p>
+                <p className="mb-2"><strong>Urgency:</strong> {detailsModal.complaint.urgency.toUpperCase()}</p>
+                <p><strong>Submitted:</strong> {new Date(detailsModal.complaint.createdAt).toLocaleString()}</p>
+              </div>
+
+              <div>
+                <h5 className="font-semibold text-gray-800 mb-2">Description</h5>
+                <p className="text-gray-600 bg-gray-50 p-4 rounded-lg border whitespace-pre-wrap">{detailsModal.complaint.description}</p>
+              </div>
+
+              {detailsModal.complaint.images && detailsModal.complaint.images.length > 0 && (
+                <div>
+                  <h5 className="font-semibold text-gray-800 mb-2">Attached Picture</h5>
+                  <div className="border rounded-lg p-2 bg-gray-50 inline-block">
+                    <img 
+                      src={detailsModal.complaint.images[0]} 
+                      alt="Complaint" 
+                      className="max-w-full max-h-96 rounded object-contain" 
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="p-6 border-t bg-gray-50 flex justify-end">
+              <button onClick={() => setDetailsModal({ show: false, complaint: null })}
+                className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-md font-medium">
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

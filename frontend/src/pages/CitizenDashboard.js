@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-
-import { PlusCircle, Search, AlertCircle, Clock, CheckCircle } from 'lucide-react';
+import { PlusCircle, Search, AlertCircle, Clock, CheckCircle, ShieldCheck } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
@@ -13,6 +12,7 @@ const CitizenDashboard = () => {
   const [showModal, setShowModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [selectedComplaintForFeedback, setSelectedComplaintForFeedback] = useState(null);
+  const [resolutionModal, setResolutionModal] = useState({ show: false, complaint: null });
   
   // Feedback form state
   const [feedbackData, setFeedbackData] = useState({
@@ -21,7 +21,7 @@ const CitizenDashboard = () => {
 
   // New complaint form state
   const [formData, setFormData] = useState({
-    title: '', description: '', category: '', area: '', ward: '', urgency: 'medium'
+    title: '', description: '', category: '', area: '', ward: '', urgency: 'medium', imageBase64: ''
   });
 
   useEffect(() => {
@@ -52,8 +52,25 @@ const CitizenDashboard = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, imageBase64: reader.result });
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setFormData({ ...formData, imageBase64: '' });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.imageBase64) {
+      alert("Please attach a picture before submitting.");
+      return;
+    }
     try {
       const token = localStorage.getItem('token');
       await axios.post(`${API_URL}/complaints`, {
@@ -64,11 +81,12 @@ const CitizenDashboard = () => {
         locationDetails: {
           area: formData.area,
           ward: formData.ward
-        }
+        },
+        images: formData.imageBase64 ? [formData.imageBase64] : []
       }, { headers: { Authorization: `Bearer ${token}` } });
       
       setShowModal(false);
-      setFormData({ title: '', description: '', category: categories[0]?._id, area: '', ward: '', urgency: 'medium' });
+      setFormData({ title: '', description: '', category: categories[0]?._id, area: '', ward: '', urgency: 'medium', imageBase64: '' });
       fetchData(); // Refresh list
     } catch (error) {
       console.error("Failed to submit complaint", error);
@@ -159,15 +177,25 @@ const CitizenDashboard = () => {
                 <span>Submitted: {new Date(complaint.createdAt).toLocaleDateString()}</span>
                 <div className="flex items-center space-x-3">
                   {complaint.status === 'resolved' && (
-                    <button
-                      onClick={() => {
-                        setSelectedComplaintForFeedback(complaint);
-                        setShowFeedbackModal(true);
-                      }}
-                      className="text-xs bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full font-medium hover:bg-indigo-200 transition-colors"
-                    >
-                      Provide Feedback
-                    </button>
+                    <>
+                      {complaint.resolutionProof?.note && (
+                        <button
+                          onClick={() => setResolutionModal({ show: true, complaint })}
+                          className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium hover:bg-green-200 transition-colors flex items-center gap-1"
+                        >
+                          <ShieldCheck size={12} /> View Resolution
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          setSelectedComplaintForFeedback(complaint);
+                          setShowFeedbackModal(true);
+                        }}
+                        className="text-xs bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full font-medium hover:bg-indigo-200 transition-colors"
+                      >
+                        Provide Feedback
+                      </button>
+                    </>
                   )}
                   {getStatusIcon(complaint.status)}
                 </div>
@@ -240,10 +268,16 @@ const CitizenDashboard = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Attach Picture (Optional)</label>
-                <input type="file" accept="image/*"
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Attach Picture (Required)</label>
+                <input type="file" accept="image/*" required onChange={handleImageChange}
                   className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
                 <p className="text-xs text-gray-500 mt-2">Upload a clear photo to help authorities identify the issue faster.</p>
+                {formData.imageBase64 && (
+                  <div className="mt-4">
+                    <p className="text-sm font-semibold text-gray-700 mb-2">Image Preview:</p>
+                    <img src={formData.imageBase64} alt="Preview" className="max-h-48 rounded-lg border shadow-sm" />
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end space-x-4 pt-4 border-t">
@@ -320,6 +354,66 @@ const CitizenDashboard = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+    
+
+      {/* Resolution Proof Modal */}
+      {resolutionModal.show && resolutionModal.complaint && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-green-100 rounded-full">
+                  <ShieldCheck size={20} className="text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800">Resolution Proof</h3>
+                  <p className="text-xs text-gray-500">{resolutionModal.complaint.title}</p>
+                </div>
+              </div>
+              <button onClick={() => setResolutionModal({ show: false, complaint: null })} className="text-gray-400 hover:text-gray-600 text-3xl font-light">&times;</button>
+            </div>
+            <div className="p-6 space-y-5">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p className="text-sm font-semibold text-green-800 mb-1">✓ Your complaint has been resolved</p>
+                {resolutionModal.complaint.resolutionProof?.resolvedBy && (
+                  <p className="text-xs text-green-700">
+                    Resolved by: <strong>{resolutionModal.complaint.resolutionProof.resolvedBy}</strong>
+                    {resolutionModal.complaint.resolutionProof?.resolvedAt &&
+                      ` on ${new Date(resolutionModal.complaint.resolutionProof.resolvedAt).toLocaleDateString()}`
+                    }
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <h5 className="font-semibold text-gray-800 mb-2">Resolution Note</h5>
+                <p className="text-gray-700 bg-gray-50 p-4 rounded-lg border whitespace-pre-wrap text-sm">
+                  {resolutionModal.complaint.resolutionProof?.note}
+                </p>
+              </div>
+
+              {resolutionModal.complaint.resolutionProof?.image && (
+                <div>
+                  <h5 className="font-semibold text-gray-800 mb-2">Proof Image</h5>
+                  <div className="border rounded-lg p-2 bg-gray-50">
+                    <img
+                      src={resolutionModal.complaint.resolutionProof.image}
+                      alt="Resolution proof"
+                      className="max-w-full max-h-72 rounded object-contain mx-auto block"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="p-6 border-t bg-gray-50 flex justify-end">
+              <button onClick={() => setResolutionModal({ show: false, complaint: null })}
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow-md font-medium">
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

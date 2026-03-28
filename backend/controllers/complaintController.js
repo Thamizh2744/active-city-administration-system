@@ -110,12 +110,23 @@ exports.getComplaintById = async (req, res) => {
 // @access  Private (Admin, Municipal, NGO)
 exports.updateComplaintStatus = async (req, res) => {
   try {
-    const { status, remarks } = req.body;
+    const { status, remarks, resolutionProof } = req.body;
     const complaint = await Complaint.findById(req.params.id);
 
     if (complaint) {
       const oldStatus = complaint.status;
       complaint.status = status;
+
+      // Save resolution proof if resolving
+      if (status === "resolved" && resolutionProof) {
+        complaint.resolutionProof = {
+          note: resolutionProof.note || "",
+          image: resolutionProof.image || null,
+          resolvedBy: req.user.name || req.user.id,
+          resolvedAt: new Date(),
+        };
+      }
+
       const updatedComplaint = await complaint.save();
 
       // Record status update
@@ -133,7 +144,7 @@ exports.updateComplaintStatus = async (req, res) => {
         if (complaint.citizen && complaint.citizen.phone) {
           await sendSMS(
             complaint.citizen.phone, 
-            `Your complaint "${complaint.title}" has been resolved. Please log in to provide feedback.`
+            `Your complaint "${complaint.title}" has been resolved. Please log in to provide feedback and view the resolution proof.`
           );
         }
       }

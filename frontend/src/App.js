@@ -6,8 +6,19 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import CitizenDashboard from './pages/CitizenDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import MunicipalNgoDashboard from './pages/MunicipalNgoDashboard';
 import Notifications from './pages/Notifications';
 import { LogOut, User as UserIcon, Bell } from 'lucide-react';
+
+const getDashboardPath = (role) => {
+  switch (role) {
+    case 'citizen':       return '/citizen';
+    case 'administrator': return '/admin';
+    case 'municipal':     return '/municipal';
+    case 'ngo':           return '/ngo';
+    default:              return '/login';
+  }
+};
 
 // Layout with active Navbar
 const Layout = ({ children }) => {
@@ -27,11 +38,7 @@ const Layout = ({ children }) => {
               <a href="/notifications" className="hover:text-indigo-200 transition-colors flex items-center space-x-1">
                 <Bell size={20} />
               </a>
-              {user.role === 'citizen' ? (
-                <a href="/citizen" className="hover:text-blue-200 font-medium transition-colors">Dashboard</a>
-              ) : (
-                <a href="/admin" className="hover:text-blue-200 font-medium transition-colors">Dashboard</a>
-              )}
+              <a href={getDashboardPath(user.role)} className="hover:text-blue-200 font-medium transition-colors">Dashboard</a>
               <div className="flex items-center space-x-2 bg-blue-800/50 px-3 py-1 rounded-full">
                 <UserIcon size={18} />
                 <span className="font-medium">{user.name}</span>
@@ -72,6 +79,8 @@ const AppContent = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/citizen/*" element={<CitizenDashboard />} />
         <Route path="/admin/*" element={<AdminDashboard />} />
+        <Route path="/municipal/*" element={<MunicipalNgoDashboard />} />
+        <Route path="/ngo/*" element={<MunicipalNgoDashboard />} />
         <Route path="/notifications" element={<Notifications />} />
       </Routes>
     </Layout>
