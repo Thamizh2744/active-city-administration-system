@@ -81,41 +81,42 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-8">
-      {/* Overview Stats — all clickable to filter table */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      {/* Overview Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
         {[
-          { icon: <ClipboardList className="text-blue-500" size={22} />,    label: 'Total',       value: complaints.length,                                          bg: 'bg-blue-50',   filter: 'all' },
-          { icon: <AlertCircle className="text-yellow-500" size={22} />,    label: 'Pending',     value: complaints.filter(c => c.status === 'pending').length,      bg: 'bg-yellow-50', filter: 'pending' },
-          { icon: <Settings className="text-purple-500" size={22} />,       label: 'Assigned',    value: complaints.filter(c => c.status === 'assigned').length,     bg: 'bg-purple-50', filter: 'assigned' },
-          { icon: <Clock className="text-blue-400" size={22} />,            label: 'In-Progress', value: complaints.filter(c => c.status === 'in-progress').length,  bg: 'bg-sky-50',    filter: 'in-progress' },
-          { icon: <CheckCircle className="text-green-500" size={22} />,     label: 'Resolved',    value: complaints.filter(c => c.status === 'resolved').length,     bg: 'bg-green-50',  filter: 'resolved' },
-          { icon: <XCircle className="text-red-500" size={22} />,           label: 'Rejected',    value: complaints.filter(c => c.status === 'rejected').length,     bg: 'bg-red-50',    filter: 'rejected' },
+          { icon: <ClipboardList className="text-blue-500" size={20} />,    label: 'Total',       value: complaints.length,                                          bg: 'bg-blue-50',   filter: 'all' },
+          { icon: <AlertCircle className="text-yellow-500" size={20} />,    label: 'Pending',     value: complaints.filter(c => c.status === 'pending').length,      bg: 'bg-yellow-50', filter: 'pending' },
+          { icon: <Settings className="text-purple-500" size={20} />,       label: 'Assigned',    value: complaints.filter(c => c.status === 'assigned').length,     bg: 'bg-purple-50', filter: 'assigned' },
+          { icon: <Clock className="text-blue-400" size={20} />,            label: 'In-Progress', value: complaints.filter(c => c.status === 'in-progress').length,  bg: 'bg-sky-50',    filter: 'in-progress' },
+          { icon: <CheckCircle className="text-green-500" size={20} />,     label: 'Resolved',    value: complaints.filter(c => c.status === 'resolved').length,     bg: 'bg-green-50',  filter: 'resolved' },
+          { icon: <XCircle className="text-red-500" size={20} />,           label: 'Rejected',    value: complaints.filter(c => c.status === 'rejected').length,     bg: 'bg-red-50',    filter: 'rejected' },
         ].map((stat, i) => (
           <button
             key={i}
             onClick={() => setFilterStr(stat.filter)}
-            className={`p-4 rounded-xl border shadow-sm flex flex-col items-start space-y-2 bg-white w-full text-left transition-all hover:shadow-md hover:-translate-y-0.5 ${
+            className={`p-3 sm:p-4 rounded-xl border shadow-sm flex flex-col items-start space-y-1.5 bg-white w-full text-left transition-all hover:shadow-md hover:-translate-y-0.5 ${
               filterStr === stat.filter ? 'ring-2 ring-indigo-400 border-indigo-300' : 'border-gray-100'
             }`}
           >
-            <div className={`p-2 rounded-full ${stat.bg}`}>{stat.icon}</div>
+            <div className={`p-1.5 sm:p-2 rounded-full ${stat.bg}`}>{stat.icon}</div>
             <div>
               <p className="text-gray-500 text-xs font-medium">{stat.label}</p>
-              <h3 className="text-xl font-bold text-gray-800">{stat.value}</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800">{stat.value}</h3>
             </div>
           </button>
         ))}
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="p-6 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4 bg-gray-50">
-          <h2 className="text-2xl font-bold text-gray-800">Operational Dashboard</h2>
-          <div className="flex items-center space-x-2 bg-white px-3 py-2 rounded-lg border">
-            <Filter size={18} className="text-gray-400" />
+        {/* Dashboard header */}
+        <div className="p-4 sm:p-6 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-gray-50">
+          <h2 className="text-lg sm:text-2xl font-bold text-gray-800">Operational Dashboard</h2>
+          <div className="flex items-center space-x-2 bg-white px-3 py-2 rounded-lg border w-full sm:w-auto">
+            <Filter size={16} className="text-gray-400 shrink-0" />
             <select 
               value={filterStr} 
               onChange={(e) => setFilterStr(e.target.value)}
-              className="bg-transparent border-none focus:outline-none text-gray-700 text-sm font-medium"
+              className="bg-transparent border-none focus:outline-none text-gray-700 text-sm font-medium w-full"
             >
               <option value="all">All Statuses</option>
               <option value="pending">Pending</option>
@@ -127,16 +128,17 @@ const AdminDashboard = () => {
           </div>
         </div>
         
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+        {/* Scrollable table on mobile */}
+        <div className="overflow-x-auto -webkit-overflow-scrolling-touch w-full">
+          <table className="w-full text-left border-collapse" style={{minWidth: '580px'}}>
             <thead>
               <tr className="bg-gray-100/50 text-gray-600 text-xs uppercase tracking-wider">
-                <th className="p-4 font-semibold border-b">ID / Title</th>
-                <th className="p-4 font-semibold border-b">Citizen</th>
-                <th className="p-4 font-semibold border-b">Location</th>
-                <th className="p-4 font-semibold border-b">Urgency</th>
-                <th className="p-4 font-semibold border-b">Status</th>
-                <th className="p-4 font-semibold border-b text-right">Actions</th>
+                <th className="p-3 sm:p-4 font-semibold border-b">ID / Title</th>
+                <th className="p-3 sm:p-4 font-semibold border-b">Citizen</th>
+                <th className="p-3 sm:p-4 font-semibold border-b">Location</th>
+                <th className="p-3 sm:p-4 font-semibold border-b">Urgency</th>
+                <th className="p-3 sm:p-4 font-semibold border-b">Status</th>
+                <th className="p-3 sm:p-4 font-semibold border-b text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -147,18 +149,18 @@ const AdminDashboard = () => {
               ) : (
                 filteredComplaints.map(complaint => (
                   <tr key={complaint._id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="p-4">
-                      <div className="font-bold text-gray-800 text-sm mb-1">{complaint.title}</div>
+                    <td className="p-3 sm:p-4">
+                      <div className="font-bold text-gray-800 text-sm mb-0.5">{complaint.title}</div>
                       <div className="text-xs text-gray-400 font-mono">{complaint._id.substring(0,8)}...</div>
                     </td>
-                    <td className="p-4">
+                    <td className="p-3 sm:p-4">
                       <div className="font-medium text-gray-800 text-sm">{complaint.citizen?.name}</div>
                       <div className="text-xs text-gray-500">{complaint.citizen?.email}</div>
                     </td>
-                    <td className="p-4 text-sm text-gray-600">
+                    <td className="p-3 sm:p-4 text-sm text-gray-600">
                       {complaint.locationDetails?.area}, {complaint.locationDetails?.ward}
                     </td>
-                    <td className="p-4">
+                    <td className="p-3 sm:p-4">
                       <span className={`px-2 py-1 text-xs font-semibold rounded-md 
                         ${complaint.urgency === 'critical' ? 'bg-red-100 text-red-700' : 
                           complaint.urgency === 'high' ? 'bg-orange-100 text-orange-700' : 
@@ -166,24 +168,24 @@ const AdminDashboard = () => {
                         {complaint.urgency.toUpperCase()}
                       </span>
                     </td>
-                    <td className="p-4">
+                    <td className="p-3 sm:p-4">
                       <span className={`px-2 py-1 text-xs font-bold rounded-full border ${getStatusColor(complaint.status)}`}>
                         {complaint.status?.toUpperCase()}
                       </span>
                     </td>
-                    <td className="p-4 text-right">
+                    <td className="p-3 sm:p-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         {complaint.status === 'pending' && (
                           <button
                             onClick={() => setAssignModal({ show: true, complaintId: complaint._id, selectedUser: authorities[0]?._id })}
-                            className="text-indigo-600 hover:text-indigo-900 text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded transition-colors"
+                            className="text-indigo-600 hover:text-indigo-900 text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded transition-colors whitespace-nowrap"
                           >
                             Assign
                           </button>
                         )}
                         <button
                           onClick={() => setDetailsModal({ show: true, complaint })}
-                          className="text-gray-500 hover:text-gray-700 text-xs font-semibold bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded transition-colors"
+                          className="text-gray-500 hover:text-gray-700 text-xs font-semibold bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors whitespace-nowrap"
                         >
                           Details
                         </button>
