@@ -287,7 +287,7 @@ const MunicipalNgoDashboard = () => {
                 </label>
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/*,image/jpeg,image/jpg,image/png,image/gif,image/webp,image/bmp,image/tiff,image/tif,image/avif,image/heic,image/heif,image/svg+xml,image/x-icon,image/vnd.microsoft.icon"
                   onChange={handleProofImage}
                   className="w-full px-4 py-3 border rounded-lg bg-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
                 />
