@@ -23,6 +23,9 @@ const CitizenDashboard = () => {
   const [formData, setFormData] = useState({
     title: '', description: '', category: '', area: '', ward: '', urgency: 'medium', imageBase64: ''
   });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -71,6 +74,8 @@ const CitizenDashboard = () => {
       alert("Please attach a picture before submitting.");
       return;
     }
+    
+    setIsSubmitting(true);
     try {
       const token = localStorage.getItem('token');
       await axios.post(`${API_URL}/complaints`, {
@@ -90,11 +95,15 @@ const CitizenDashboard = () => {
       fetchData(); // Refresh list
     } catch (error) {
       console.error("Failed to submit complaint", error);
+      alert("Failed to submit complaint. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleFeedbackSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmittingFeedback(true);
     try {
       const token = localStorage.getItem('token');
       await axios.post(`${API_URL}/feedback`, {
@@ -110,6 +119,8 @@ const CitizenDashboard = () => {
     } catch (error) {
       console.error("Failed to submit feedback", error);
       alert(error.response?.data?.message || 'Failed to submit feedback');
+    } finally {
+      setIsSubmittingFeedback(false);
     }
   };
 
@@ -290,9 +301,9 @@ const CitizenDashboard = () => {
                   className="px-6 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition-colors">
                   Cancel
                 </button>
-                <button type="submit"
-                  className="px-6 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 shadow-md transition-colors">
-                  Submit Complaint
+                <button type="submit" disabled={isSubmitting}
+                  className={`px-6 py-2 text-white font-medium rounded-lg shadow-md transition-colors ${isSubmitting ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
+                  {isSubmitting ? 'Submitting...' : 'Submit Complaint'}
                 </button>
               </div>
             </form>
@@ -353,9 +364,9 @@ const CitizenDashboard = () => {
                   className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-lg">
                   Cancel
                 </button>
-                <button type="submit"
-                  className="px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 shadow-sm">
-                  Submit Feedback
+                <button type="submit" disabled={isSubmittingFeedback}
+                  className={`px-4 py-2 text-white font-medium rounded-lg shadow-sm ${isSubmittingFeedback ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
+                  {isSubmittingFeedback ? 'Submitting...' : 'Submit Feedback'}
                 </button>
               </div>
             </form>

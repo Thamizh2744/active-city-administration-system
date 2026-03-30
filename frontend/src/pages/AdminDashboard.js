@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
-import { Settings, ClipboardList, Filter, AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Settings, ClipboardList, Filter, AlertCircle, CheckCircle, Clock, XCircle, RefreshCw } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
@@ -14,11 +14,35 @@ const AdminDashboard = () => {
   const [assignModal, setAssignModal] = useState({ show: false, complaintId: null, selectedUser: '' });
   const [detailsModal, setDetailsModal] = useState({ show: false, complaint: null });
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchComplaints = useCallback(async (showLoader = false) => {
+    if (showLoader) setIsRefreshing(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/complaints`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setComplaints(res.data);
+    } catch (error) {
+      console.error("Failed to fetch complaints", error);
+    } finally {
+      if (showLoader) setIsRefreshing(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchComplaints();
     fetchAuthorities();
+    
+    // Auto refresh every 15 seconds
+    const intervalId = setInterval(() => {
+      fetchComplaints(false);
+    }, 15000);
+    
+    return () => clearInterval(intervalId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchComplaints]);
 
   const fetchAuthorities = async () => {
     try {
@@ -32,17 +56,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const fetchComplaints = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API_URL}/complaints`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setComplaints(res.data);
-    } catch (error) {
-      console.error("Failed to fetch complaints", error);
-    }
-  };
+
 
 
 
@@ -59,7 +73,7 @@ const AdminDashboard = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAssignModal({ show: false, complaintId: null, selectedUser: '' });
-      fetchComplaints(); // Refresh to show "assigned" status
+      fetchComplaints(false); // Refresh to show "assigned" status
     } catch (error) {
       console.error("Failed to assign", error);
       alert("Assignment failed. Please try again.");
@@ -112,7 +126,15 @@ const AdminDashboard = () => {
         <div className="p-4 sm:p-6 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-gray-50">
           <h2 className="text-lg sm:text-2xl font-bold text-gray-800">Operational Dashboard</h2>
           <div className="flex items-center space-x-2 bg-white px-3 py-2 rounded-lg border w-full sm:w-auto">
-            <Filter size={16} className="text-gray-400 shrink-0" />
+            <button 
+              onClick={() => fetchComplaints(true)}
+              className="p-1.5 text-gray-400 hover:text-indigo-600 transition-colors bg-gray-50 hover:bg-gray-100 rounded-md mr-1 border border-transparent"
+              title="Refresh Complaints"
+            >
+              <RefreshCw size={16} className={isRefreshing ? 'animate-spin text-indigo-600' : ''} />
+            </button>
+            <div className="h-5 w-px bg-gray-200 mx-1"></div>
+            <Filter size={16} className="text-gray-400 shrink-0 ml-1" />
             <select 
               value={filterStr} 
               onChange={(e) => setFilterStr(e.target.value)}
