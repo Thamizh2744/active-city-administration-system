@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
-import { Settings, ClipboardList, Filter, AlertCircle, CheckCircle, Clock, XCircle, RefreshCw } from 'lucide-react';
+import { Settings, ClipboardList, Filter, AlertCircle, CheckCircle, Clock, XCircle, RefreshCw, Flame, ArrowUp, Activity, ArrowDown } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
@@ -9,7 +9,8 @@ const AdminDashboard = () => {
   // eslint-disable-next-line no-unused-vars
   const { user } = useContext(AuthContext);
   const [complaints, setComplaints] = useState([]);
-  const [filterStr, setFilterStr] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [urgencyFilter, setUrgencyFilter] = useState('all');
   const [authorities, setAuthorities] = useState([]);
   const [assignModal, setAssignModal] = useState({ show: false, complaintId: null, selectedUser: '' });
   const [detailsModal, setDetailsModal] = useState({ show: false, complaint: null });
@@ -91,7 +92,13 @@ const AdminDashboard = () => {
     }
   };
 
-  const filteredComplaints = filterStr === 'all' ? complaints : complaints.filter(c => c.status === filterStr);
+  let filteredComplaints = complaints;
+  if (statusFilter !== 'all') {
+    filteredComplaints = filteredComplaints.filter(c => c.status === statusFilter);
+  }
+  if (urgencyFilter !== 'all') {
+    filteredComplaints = filteredComplaints.filter(c => c.urgency === urgencyFilter);
+  }
 
   return (
     <div className="space-y-8">
@@ -107,9 +114,34 @@ const AdminDashboard = () => {
         ].map((stat, i) => (
           <button
             key={i}
-            onClick={() => setFilterStr(stat.filter)}
+            onClick={() => { setStatusFilter(stat.filter); setUrgencyFilter('all'); }}
             className={`p-3 sm:p-4 rounded-xl border shadow-sm flex flex-col items-start space-y-1.5 bg-white w-full text-left transition-all hover:shadow-md hover:-translate-y-0.5 ${
-              filterStr === stat.filter ? 'ring-2 ring-indigo-400 border-indigo-300' : 'border-gray-100'
+              statusFilter === stat.filter && urgencyFilter === 'all' ? 'ring-2 ring-indigo-400 border-indigo-300' : 'border-gray-100'
+            }`}
+          >
+            <div className={`p-1.5 sm:p-2 rounded-full ${stat.bg}`}>{stat.icon}</div>
+            <div>
+              <p className="text-gray-500 text-xs font-medium">{stat.label}</p>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800">{stat.value}</h3>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Urgency Stats */}
+      <h3 className="text-lg font-semibold text-gray-700 mt-6 mb-2">Urgency Overview</h3>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+        {[
+          { icon: <Flame className="text-red-500" size={20} />,    label: 'Critical', value: complaints.filter(c => c.urgency === 'critical').length, bg: 'bg-red-50', filterType: 'critical' },
+          { icon: <ArrowUp className="text-orange-500" size={20} />, label: 'High',     value: complaints.filter(c => c.urgency === 'high').length,     bg: 'bg-orange-50', filterType: 'high' },
+          { icon: <Activity className="text-yellow-500" size={20} />,   label: 'Medium',   value: complaints.filter(c => c.urgency === 'medium').length,   bg: 'bg-yellow-50', filterType: 'medium' },
+          { icon: <ArrowDown className="text-green-500" size={20} />,  label: 'Low',      value: complaints.filter(c => c.urgency === 'low').length,      bg: 'bg-green-50', filterType: 'low' },
+        ].map((stat, i) => (
+          <button
+            key={`urgency-${i}`}
+            onClick={() => { setUrgencyFilter(stat.filterType); setStatusFilter('all'); }}
+            className={`p-3 sm:p-4 rounded-xl border shadow-sm flex flex-col items-start space-y-1.5 bg-white w-full text-left transition-all hover:shadow-md hover:-translate-y-0.5 ${
+              urgencyFilter === stat.filterType && statusFilter === 'all' ? 'ring-2 ring-red-400 border-red-300' : 'border-gray-100'
             }`}
           >
             <div className={`p-1.5 sm:p-2 rounded-full ${stat.bg}`}>{stat.icon}</div>
@@ -136,8 +168,8 @@ const AdminDashboard = () => {
             <div className="h-5 w-px bg-gray-200 mx-1"></div>
             <Filter size={16} className="text-gray-400 shrink-0 ml-1" />
             <select 
-              value={filterStr} 
-              onChange={(e) => setFilterStr(e.target.value)}
+              value={statusFilter} 
+              onChange={(e) => setStatusFilter(e.target.value)}
               className="bg-transparent border-none focus:outline-none text-gray-700 text-sm font-medium w-full"
             >
               <option value="all">All Statuses</option>
@@ -146,6 +178,19 @@ const AdminDashboard = () => {
               <option value="in-progress">In-Progress</option>
               <option value="resolved">Resolved</option>
               <option value="rejected">Rejected</option>
+            </select>
+            
+            <div className="h-5 w-px bg-gray-200 mx-1 hidden sm:block"></div>
+            <select 
+              value={urgencyFilter} 
+              onChange={(e) => setUrgencyFilter(e.target.value)}
+              className="bg-transparent border-none focus:outline-none text-gray-700 text-sm font-medium w-full hidden sm:block"
+            >
+              <option value="all">All Urgencies</option>
+              <option value="critical">Critical</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
             </select>
           </div>
         </div>
