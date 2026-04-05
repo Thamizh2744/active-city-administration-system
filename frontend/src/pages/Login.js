@@ -36,7 +36,7 @@ const Login = () => {
             <input 
               type="email" 
               required
-              pattern="[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
+              pattern="[A-Za-z0-9._%+-]+@gmail+\.com$"
               title="Please enter a valid email format"
               className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={email}

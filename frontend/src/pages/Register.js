@@ -59,7 +59,7 @@ const Register = () => {
             <div>
               <label className="block text-gray-700 text-sm font-bold mb-2">Email Address</label>
               <input type="email" name="email" required onChange={handleChange}
-                pattern="[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$" title="Please enter a valid email format"
+                pattern="[A-Za-z0-9._%+\-]+@gmail+\.com$" title="Please enter a valid email format"
                 className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter Your E-mail" />
             </div>
