@@ -228,7 +228,7 @@ const CitizenDashboard = () => {
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Title</label>
-                <input type="text" name="title" required value={formData.title} onChange={handleInputChange}
+                <input type="text" name="title" required pattern="^[A-Za-z\s]+$" title="Title must contain only alphabets and spaces" value={formData.title} onChange={handleInputChange}
                   className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                   placeholder="e.g. Broken Streetlight on Main St" />
               </div>
@@ -287,7 +287,9 @@ const CitizenDashboard = () => {
                   onChange={handleImageChange}
                   className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors bg-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
                 />
-                <p className="text-xs text-gray-500 mt-2">Supported formats: JPG, PNG, GIF, WebP, BMP, TIFF, AVIF, HEIC, SVG and more.</p>
+                <p className="text-xs text-gray-500 mt-2">Supported formats: JPG, PNG, GIF, WebP, BMP, TIFF, AVIF, HEIC, SVG and more.<br />
+                  <span className="font-bold">Note:Upload Geo-tagged image for better response.</span>
+                </p>
                 {formData.imageBase64 && (
                   <div className="mt-4">
                     <p className="text-sm font-semibold text-gray-700 mb-2">Image Preview:</p>

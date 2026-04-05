@@ -36,6 +36,8 @@ const Login = () => {
             <input 
               type="email" 
               required
+              pattern="[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
+              title="Please enter a valid email format"
               className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -47,6 +49,10 @@ const Login = () => {
             <input 
               type="password" 
               required
+              minLength={6} 
+              maxLength={12}
+              pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{6,12}$"
+              title="Password must be 6-12 characters, including at least 1 uppercase, 1 lowercase, 1 number, and 1 special character"
               className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

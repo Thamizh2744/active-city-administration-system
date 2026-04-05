@@ -21,8 +21,8 @@ const Register = () => {
     // Combine country code and phone if phone is provided
     const submitData = { ...formData };
     if (formData.phone) {
-      if (!/^\d{10}$/.test(formData.phone)) {
-        setError('Phone number must be exactly 10 digits');
+      if (!/^[6-9]\d{9}$/.test(formData.phone)) {
+        setError('Phone number must be a valid 10-digit Indian number starting with 6-9');
         return;
       }
       submitData.phone = `${formData.countryCode} ${formData.phone}`;
@@ -52,12 +52,14 @@ const Register = () => {
             <div>
               <label className="block text-gray-700 text-sm font-bold mb-2">Full Name</label>
               <input type="text" name="name" required onChange={handleChange}
+                pattern="^[A-Za-z\s]+$" title="Name must contain only alphabets and spaces"
                 className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter Your Name" />
             </div>
             <div>
               <label className="block text-gray-700 text-sm font-bold mb-2">Email Address</label>
               <input type="email" name="email" required onChange={handleChange}
+                pattern="[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$" title="Please enter a valid email format"
                 className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter Your E-mail" />
             </div>
@@ -66,7 +68,8 @@ const Register = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-gray-700 text-sm font-bold mb-2">Password</label>
-              <input type="password" name="password" required onChange={handleChange} minLength={6}
+              <input type="password" name="password" required onChange={handleChange} minLength={6} maxLength={12}
+                pattern="^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_]).{6,12}$" title="Password must be 6-12 characters, including at least 1 uppercase, 1 lowercase, 1 number, and 1 special character"
                 className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Password" />
             </div>
@@ -89,7 +92,7 @@ const Register = () => {
                 className="px-2 py-2 border border-r-0 rounded-l-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-fit">
                 <option value="+91">🇮🇳 +91</option>
               </select>
-              <input type="tel" name="phone" onChange={handleChange} required pattern="\d{10}" title="Phone number must be exactly 10 digits" maxLength="10"
+              <input type="tel" name="phone" onChange={handleChange} required pattern="^[6-9]\d{9}$" title="Phone number must be a valid 10-digit Indian number starting with 6-9" maxLength="10"
                 className="w-full px-4 py-2 border rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="9876543210" />
             </div>
